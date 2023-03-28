@@ -75,6 +75,7 @@ def test(model, data):
         correct += predicted.eq(labels).sum().item()
     print("Test loss: {:.3f}".format(correct/total))
     print(confusion_matrix)
+    return confusion_matrix
 
 def train(model, data, epochs):
     n = len(data)
@@ -146,7 +147,7 @@ try:
     print(model)
     train(model, train_dataloader, args.epoch_count)
     if not validation_run:
-        test(model, test_dataloader)
+        test_matrix = test(model, test_dataloader)
     else:
         test(model, validation_dataloader)
 except Exception as e:

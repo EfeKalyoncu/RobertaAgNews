@@ -33,8 +33,10 @@ if (args.validate == "True"):
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
 
+
 def tokenize(batched_text):
     return tokenizer(batched_text['text'], padding=True, truncation=True)
+
 
 def load_roberta_data():
     train_data, test_data = load_dataset("ag_news", split=['train', 'test'])
@@ -47,8 +49,9 @@ def load_roberta_data():
 
     return train_data, test_data
 
+
 def test(model, data):
-    confusion_matrix_size = len(collections.Counter(e[1] for e in data))
+    confusion_matrix_size = 4
     confusion_matrix = []
 
     total = 0
@@ -73,18 +76,24 @@ def test(model, data):
         
         total += len(predicted)
         correct += predicted.eq(labels).sum().item()
-    print("Test loss: {:.3f}".format(correct/total))
+    print("Test Accuracy: {:.3f}".format(correct/total))
     print(confusion_matrix)
     return confusion_matrix
+
 
 def train(model, data, epochs):
     n = len(data)
 
     if validation_run:
+        # This mode is to test hyperparameters
+        # To make it less time consuming epochs for this mode is set to 1
         epochs = 1
         
+    # Define metrics to monitor change in performance during execution
     accuracy_history_epoch = []
     accuracy_history_step = []
+
+
     loss_func = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate)
     
@@ -108,7 +117,7 @@ def train(model, data, epochs):
             accuracy_history_step.append((i+1, correct/total))
 
         accuracy_history_epoch.append(correct / total)
-        print("Epoch: {:>3d} Loss: {:.3f}".format(epoch, accuracy_history_epoch[-1]))
+        print("Epoch: {:>3d} Accuracy: {:.3f}".format(epoch, accuracy_history_epoch[-1]))
 
     return accuracy_history_epoch, accuracy_history_step
 
@@ -129,6 +138,7 @@ if use_freeze_model:
 
 indices = list(range(len(train_data)))
 
+# Make a 20-80 validation-training split for validation mode
 if validation_run:
     validation_split_size = 0.2
     np.random.shuffle(indices)
